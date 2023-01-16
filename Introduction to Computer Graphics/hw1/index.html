@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script id="vertex-shader" type="x-shader/x-vertex">
+    precision mediump float;
+    attribute vec3 vPosition; //頂點座標
+    varying vec4 fColor; //頂點顏色
+    uniform mat4 uViewMatrix; //旋轉矩陣
+
+    void main()
+    {
+        float l = 1.0;
+        vec3 a = vec3(0.0 * l, 0.0 * l, sqrt(6.0) / 4.0 * l);//(0,0,9)
+        vec3 b = vec3(sqrt(3.0) / 6.0 * l, -1.0 / 2.0 * l, -sqrt(6.0) / 12.0 * l);//(1.5,-0.5,-3)
+        vec3 c = vec3(sqrt(3.0) / 6.0 * l, 1.0 / 2.0 * l, -sqrt(6.0) / 12.0 * l);//(1.5,0.5,-3)
+        vec3 d = vec3(-sqrt(3.0) / 3.0 * l, 0.0 * l, -sqrt(6.0) / 12.0 * l);//(-3,0,-3)
+        fColor[0] = distance(vPosition, a) / 2.0;//r
+        fColor[1] = distance(vPosition, b) / 2.0;//g
+        fColor[2] = distance(vPosition, c) / 2.0;//b
+        fColor[3] = 0.9;//透明度
+        gl_Position = uViewMatrix * vec4(vPosition, 1.0);
+    }
+    </script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+    precision mediump float;
+    varying vec4 fColor; //頂點顏色
+
+    void main()
+    {
+        //gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        gl_FragColor = fColor;
+    }
+    </script>
+    <script src="resources/webgl-lessons-ui.js"></script>
+    <script src="resources/m3.js"></script>
+
+    <body>
+        <div>
+            <div>
+                <span>x</span>
+                <input id="x-range" type="range" min="0" max="100" value="0" oninput="rotateHandle()" />
+            </div>
+            <div>
+                <span>y</span>
+                <input id="y-range" type="range" min="0" max="100" value="0" oninput="rotateHandle()" />
+            </div>
+            <div>
+                <span>z</span>
+                <input id="z-range" type="range" min="0" max="100" value="0" oninput="rotateHandle()" />
+            </div>
+    
+            <div id="uiContainer">
+                <div id="ui">
+                  <span>n</span>
+                  <input id="n" type="range" min="0" max="9" step="1" value="9" oninput="updatenum(this.value)">
+                  <output id="nVal"> </output>
+                </div>
+            </div>
+            
+        </div>
+        <canvas id="gl-canvas" width="800" height="800">
+            Oops ... your browser doesn't support the HTML5 canvas element
+        </canvas>
+    </body>
+</head>
+
+<style>
+    @import url("https://webgl2fundamentals.org/webgl/resources/webgl-tutorials.css");
+body {
+  margin: 0;
+}
+canvas {
+  width: 100vw;
+  height: 100vh;
+  display: block;
+}
+</style>
+
+<script>//MV.js
+//----------------------------------------------------------------------------
+//
+//  Helper functions
+//
+
+/**
+ * @param {IArguments} args 
+ * @returns {Array}
+ */
+function _argumentsToArray(args) {
+    return [].concat.apply([], Array.prototype.slice.apply(args));
+}
+
+/**
+ * @param {number} degrees 
+ * @returns {number}
+ */
+function radians(degrees) {
+    return degrees * Math.PI / 180.0;
+}
+
+//----------------------------------------------------------------------------
+//
+//  Vector Constructors
+//
+
+/**
+ * @param  {...number} args 
+ * @returns {number[]}
+ */
+function vec2(...args) {
+    switch (args.length) {
+        case 0: args.push(0.0);
+        case 1: args.push(0.0);
+    }
+    return args.splice(0, 2);
+}
+
+/**
+ * @param  {...number} args 
+ * @returns {number[]}
+ */
+function vec3(...args) {
+    switch (args.length) {
+        case 0: args.push(0.0);
+        case 1: args.push(0.0);
+        case 2: args.push(0.0);
+    }
+    return args.splice(0, 3);
+}
+
+/**
+ * @param  {...number} args 
+ * @returns {number[]}
+ */
+function vec4(...args) {
+    switch (args.length) {
+        case 0: args.push(0.0);
+        case 1: args.push(0.0);
+        case 2: args.push(0.0);
+        case 3: args.push(1.0);
+    }
+    return args.splice(0, 4);
+}
+
+//----------------------------------------------------------------------------
+//
+//  Matrix Constructors
+//
+
+/**
+ * @param  {...number} args 
+ */
+function mat2(...args) {
+    var m = [];
+    switch (args.length) {
+        case 0:
+            args[0] = 1;
+        case 1:
+            m = [
+                vec2(args[0], 0.0),
+                vec2(0.0, args[0])
+            ];
+            break;
+        default:
+            m.push(vec2(args)); args.splice(0, 2);
+            m.push(vec2(args));
+            break;
+    }
+    m.matrix = true;
+    return m;
+}
+
+function mat3() {
+    var v = _argumentsToArray(arguments);
+
+    var m = [];
+    switch (v.length) {
+        case 0:
+            v[0] = 1;
+        case 1:
+            m = [
+                vec3(v[0], 0.0, 0.0),
+                vec3(0.0, v[0], 0.0),
+                vec3(0.0, 0.0, v[0])
+            ];
+            break;
+
+        default:
+            m.push(vec3(v)); v.splice(0, 3);
+            m.push(vec3(v)); v.splice(0, 3);
+            m.push(vec3(v));
+            break;
+    }
+
+    m.matrix = true;
+
+    return m;
+}
+
+//----------------------------------------------------------------------------
+
+/**
+ * @param  {...number} args 
+ */
+function mat4(...args) {
+    var m = [];
+    switch (args.length) {
+        case 0:
+            args[0] = 1;
+        case 1:
+            m = [
+                vec4(args[0], 0.0, 0.0, 0.0),
+                vec4(0.0, args[0], 0.0, 0.0),
+                vec4(0.0, 0.0, args[0], 0.0),
+                vec4(0.0, 0.0, 0.0, args[0])
+            ];
+            break;
+        default:
+            m.push(vec4(args)); args.splice(0, 4);
+            m.push(vec4(args)); args.splice(0, 4);
+            m.push(vec4(args)); args.splice(0, 4);
+            m.push(vec4(args));
+            break;
+    }
+    m.matrix = true;
+    return m;
+}
+
+function rotate(angle, axis) {
+    if (!Array.isArray(axis)) {
+        axis = [arguments[1], arguments[2], arguments[3]];
+    }
+
+    var v = normalize(axis);
+
+    var x = v[0];
+    var y = v[1];
+    var z = v[2];
+
+    var c = Math.cos(radians(angle));
+    var omc = 1.0 - c;
+    var s = Math.sin(radians(angle));
+
+    var result = mat4(
+        vec4(x * x * omc + c, x * y * omc - z * s, x * z * omc + y * s, 0.0),
+        vec4(x * y * omc + z * s, y * y * omc + c, y * z * omc - x * s, 0.0),
+        vec4(x * z * omc - y * s, y * z * omc + x * s, z * z * omc + c, 0.0),
+        vec4()
+    );
+
+    return result;
+}
+
+//----------------------------------------------------------------------------
+//
+//  Matrix Functions
+//
+
+function transpose(m) {
+    if (!m.matrix) {
+        return "transpose(): trying to transpose a non-matrix";
+    }
+
+    var result = [];
+    for (var i = 0; i < m.length; ++i) {
+        result.push([]);
+        for (var j = 0; j < m[i].length; ++j) {
+            result[i].push(m[j][i]);
+        }
+    }
+
+    result.matrix = true;
+
+    return result;
+}
+
+//----------------------------------------------------------------------------
+//
+//  Vector Functions
+//
+
+/**
+ * Dot Product
+ * @param {number[]} u 
+ * @param {number[]} v 
+ * @returns {number}
+ */
+function dot(u, v) {
+    if (u.length != v.length) {
+        throw "dot(): vectors are not the same dimension";
+    }
+    var sum = 0.0;
+    for (var i = 0; i < u.length; ++i) {
+        sum += u[i] * v[i];
+    }
+    return sum;
+}
+
+/**
+ * @param {number} u 
+ * @returns {number}
+ */
+function length(u) {
+    return Math.sqrt(dot(u, u));
+}
+
+function normalize(u, excludeLastComponent) {
+    if (excludeLastComponent) {
+        var last = u.pop();
+    }
+
+    var len = length(u);
+
+    if (!isFinite(len)) {
+        throw "normalize: vector " + u + " has zero length";
+    }
+
+    for (var i = 0; i < u.length; ++i) {
+        u[i] /= len;
+    }
+
+    if (excludeLastComponent) {
+        u.push(last);
+    }
+
+    return u;
+}
+
+/**
+ * (1.0 - s) * u[i] + s * v[i]
+ * @param {number[]} u 
+ * @param {number[]} v 
+ * @param {number} s 
+ * @returns {number[]}
+ */
+function mix(u, v, s) {
+    if (typeof s !== "number") {
+        throw "mix: the last paramter " + s + " must be a number";
+    }
+    if (u.length != v.length) {
+        throw "vector dimension mismatch";
+    }
+    var result = [];
+    for (var i = 0; i < u.length; ++i) {
+        result.push((1.0 - s) * u[i] + s * v[i]);
+    }
+    return result;
+}
+
+function flatten(v) {
+    if (v.matrix === true) {
+        v = transpose(v);
+    }
+
+    var n = v.length;
+    var elemsAreArrays = false;
+
+    if (Array.isArray(v[0])) {
+        elemsAreArrays = true;
+        n *= v[0].length;
+    }
+
+    var floats = new Float32Array(n);
+
+    if (elemsAreArrays) {
+        var idx = 0;
+        for (var i = 0; i < v.length; ++i) {
+            for (var j = 0; j < v[i].length; ++j) {
+                floats[idx++] = v[i][j];
+            }
+        }
+    }
+    else {
+        for (var i = 0; i < v.length; ++i) {
+            floats[i] = v[i];
+        }
+    }
+
+    return floats;
+}
+
+let sizeof = {
+    'vec2': new Float32Array(flatten(vec2())).byteLength,
+    'vec3': new Float32Array(flatten(vec3())).byteLength,
+    'vec4': new Float32Array(flatten(vec4())).byteLength,
+    'mat2': new Float32Array(flatten(mat2())).byteLength,
+    'mat3': new Float32Array(flatten(mat3())).byteLength,
+    'mat4': new Float32Array(flatten(mat4())).byteLength
+};
+
+// determinants
+/**
+ * @param {number[][]} m 
+ * @returns {number}
+ */
+function det2(m) {
+    return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+}
+
+/**
+ * @param {number[][]} m 
+ * @returns {number}
+ */
+function det3(m) {
+    var d = m[0][0] * m[1][1] * m[2][2]
+        + m[0][1] * m[1][2] * m[2][0]
+        + m[0][2] * m[2][1] * m[1][0]
+        - m[2][0] * m[1][1] * m[0][2]
+        - m[1][0] * m[0][1] * m[2][2]
+        - m[0][0] * m[1][2] * m[2][1]
+        ;
+    return d;
+}
+
+/**
+ * @param {number[][]} m 
+ * @returns {number}
+ */
+function det4(m) {
+    var m0 = [
+        vec3(m[1][1], m[1][2], m[1][3]),
+        vec3(m[2][1], m[2][2], m[2][3]),
+        vec3(m[3][1], m[3][2], m[3][3])
+    ];
+    var m1 = [
+        vec3(m[1][0], m[1][2], m[1][3]),
+        vec3(m[2][0], m[2][2], m[2][3]),
+        vec3(m[3][0], m[3][2], m[3][3])
+    ];
+    var m2 = [
+        vec3(m[1][0], m[1][1], m[1][3]),
+        vec3(m[2][0], m[2][1], m[2][3]),
+        vec3(m[3][0], m[3][1], m[3][3])
+    ];
+    var m3 = [
+        vec3(m[1][0], m[1][1], m[1][2]),
+        vec3(m[2][0], m[2][1], m[2][2]),
+        vec3(m[3][0], m[3][1], m[3][2])
+    ];
+    return m[0][0] * det3(m0) - m[0][1] * det3(m1)
+        + m[0][2] * det3(m2) - m[0][3] * det3(m3);
+
+}
+
+// inverses
+function inverse2(m) {
+    var a = mat2();
+    var d = det2(m);
+    a[0][0] = m[1][1] / d;
+    a[0][1] = -m[0][1] / d;
+    a[1][0] = -m[1][0] / d;
+    a[1][1] = m[0][0] / d;
+    a.matrix = true;
+    return a;
+}
+
+function inverse3(m) {
+    var a = mat3();
+    var d = det3(m);
+
+    var a00 = [
+        vec2(m[1][1], m[1][2]),
+        vec2(m[2][1], m[2][2])
+    ];
+    var a01 = [
+        vec2(m[1][0], m[1][2]),
+        vec2(m[2][0], m[2][2])
+    ];
+    var a02 = [
+        vec2(m[1][0], m[1][1]),
+        vec2(m[2][0], m[2][1])
+    ];
+    var a10 = [
+        vec2(m[0][1], m[0][2]),
+        vec2(m[2][1], m[2][2])
+    ];
+    var a11 = [
+        vec2(m[0][0], m[0][2]),
+        vec2(m[2][0], m[2][2])
+    ];
+    var a12 = [
+        vec2(m[0][0], m[0][1]),
+        vec2(m[2][0], m[2][1])
+    ];
+    var a20 = [
+        vec2(m[0][1], m[0][2]),
+        vec2(m[1][1], m[1][2])
+    ];
+    var a21 = [
+        vec2(m[0][0], m[0][2]),
+        vec2(m[1][0], m[1][2])
+    ];
+    var a22 = [
+        vec2(m[0][0], m[0][1]),
+        vec2(m[1][0], m[1][1])
+    ];
+
+    a[0][0] = det2(a00) / d;
+    a[0][1] = -det2(a10) / d;
+    a[0][2] = det2(a20) / d;
+    a[1][0] = -det2(a01) / d;
+    a[1][1] = det2(a11) / d;
+    a[1][2] = -det2(a21) / d;
+    a[2][0] = det2(a02) / d;
+    a[2][1] = -det2(a12) / d;
+    a[2][2] = det2(a22) / d;
+
+    return a;
+
+}
+
+function inverse4(m) {
+    var a = mat4();
+    var d = det4(m);
+
+    var a00 = [
+        vec3(m[1][1], m[1][2], m[1][3]),
+        vec3(m[2][1], m[2][2], m[2][3]),
+        vec3(m[3][1], m[3][2], m[3][3])
+    ];
+    var a01 = [
+        vec3(m[1][0], m[1][2], m[1][3]),
+        vec3(m[2][0], m[2][2], m[2][3]),
+        vec3(m[3][0], m[3][2], m[3][3])
+    ];
+    var a02 = [
+        vec3(m[1][0], m[1][1], m[1][3]),
+        vec3(m[2][0], m[2][1], m[2][3]),
+        vec3(m[3][0], m[3][1], m[3][3])
+    ];
+    var a03 = [
+        vec3(m[1][0], m[1][1], m[1][2]),
+        vec3(m[2][0], m[2][1], m[2][2]),
+        vec3(m[3][0], m[3][1], m[3][2])
+    ];
+    var a10 = [
+        vec3(m[0][1], m[0][2], m[0][3]),
+        vec3(m[2][1], m[2][2], m[2][3]),
+        vec3(m[3][1], m[3][2], m[3][3])
+    ];
+    var a11 = [
+        vec3(m[0][0], m[0][2], m[0][3]),
+        vec3(m[2][0], m[2][2], m[2][3]),
+        vec3(m[3][0], m[3][2], m[3][3])
+    ];
+    var a12 = [
+        vec3(m[0][0], m[0][1], m[0][3]),
+        vec3(m[2][0], m[2][1], m[2][3]),
+        vec3(m[3][0], m[3][1], m[3][3])
+    ];
+    var a13 = [
+        vec3(m[0][0], m[0][1], m[0][2]),
+        vec3(m[2][0], m[2][1], m[2][2]),
+        vec3(m[3][0], m[3][1], m[3][2])
+    ];
+    var a20 = [
+        vec3(m[0][1], m[0][2], m[0][3]),
+        vec3(m[1][1], m[1][2], m[1][3]),
+        vec3(m[3][1], m[3][2], m[3][3])
+    ];
+    var a21 = [
+        vec3(m[0][0], m[0][2], m[0][3]),
+        vec3(m[1][0], m[1][2], m[1][3]),
+        vec3(m[3][0], m[3][2], m[3][3])
+    ];
+    var a22 = [
+        vec3(m[0][0], m[0][1], m[0][3]),
+        vec3(m[1][0], m[1][1], m[1][3]),
+        vec3(m[3][0], m[3][1], m[3][3])
+    ];
+    var a23 = [
+        vec3(m[0][0], m[0][1], m[0][2]),
+        vec3(m[1][0], m[1][1], m[1][2]),
+        vec3(m[3][0], m[3][1], m[3][2])
+    ];
+
+    var a30 = [
+        vec3(m[0][1], m[0][2], m[0][3]),
+        vec3(m[1][1], m[1][2], m[1][3]),
+        vec3(m[2][1], m[2][2], m[2][3])
+    ];
+    var a31 = [
+        vec3(m[0][0], m[0][2], m[0][3]),
+        vec3(m[1][0], m[1][2], m[1][3]),
+        vec3(m[2][0], m[2][2], m[2][3])
+    ];
+    var a32 = [
+        vec3(m[0][0], m[0][1], m[0][3]),
+        vec3(m[1][0], m[1][1], m[1][3]),
+        vec3(m[2][0], m[2][1], m[2][3])
+    ];
+    var a33 = [
+        vec3(m[0][0], m[0][1], m[0][2]),
+        vec3(m[1][0], m[1][1], m[1][2]),
+        vec3(m[2][0], m[2][1], m[2][2])
+    ];
+
+    a[0][0] = det3(a00) / d;
+    a[0][1] = -det3(a10) / d;
+    a[0][2] = det3(a20) / d;
+    a[0][3] = -det3(a30) / d;
+    a[1][0] = -det3(a01) / d;
+    a[1][1] = det3(a11) / d;
+    a[1][2] = -det3(a21) / d;
+    a[1][3] = det3(a31) / d;
+    a[2][0] = det3(a02) / d;
+    a[2][1] = -det3(a12) / d;
+    a[2][2] = det3(a22) / d;
+    a[2][3] = -det3(a32) / d;
+    a[3][0] = -det3(a03) / d;
+    a[3][1] = det3(a13) / d;
+    a[3][2] = -det3(a23) / d;
+    a[3][3] = det3(a33) / d;
+
+    return a;
+}
+function inverse(m) {
+    if (m.matrix != true) console.log("not a matrix");
+    if (m.length == 2) return inverse2(m);
+    if (m.length == 3) return inverse3(m);
+    if (m.length == 4) return inverse4(m);
+}
+
+function normalMatrix(m, flag) {
+    var a = mat4();
+    a = inverse(transpose(m));
+    if (flag != true) return a;
+    else {
+        var b = mat3();
+        for (var i = 0; i < 3; i++) for (var j = 0; j < 3; j++) b[i][j] = a[i][j];
+        return b;
+    }
+
+}
+
+//initShaders.js
+function initShaders(gl, vertexShaderId, fragmentShaderId) {
+    let vertShdr;
+    let fragShdr;
+
+    /** @type {HTMLScriptElement} */
+    let vertElem = document.getElementById(vertexShaderId);
+    if (!vertElem) {
+        alert("Unable to load vertex shader " + vertexShaderId);
+        return -1;
+    } else {
+        vertShdr = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vertShdr, vertElem.text);
+        gl.compileShader(vertShdr);
+        if (!gl.getShaderParameter(vertShdr, gl.COMPILE_STATUS)) {
+            let msg = "Vertex shader failed to compile.  The error log is:"
+                + "<pre>" + gl.getShaderInfoLog(vertShdr) + "</pre>";
+            alert(msg);
+            return -1;
+        }
+    }
+
+    /** @type {HTMLScriptElement} */
+    var fragElem = document.getElementById(fragmentShaderId);
+    if (!fragElem) {
+        alert("Unable to load fragment shader " + fragmentShaderId);
+        return -1;
+    } else {
+        fragShdr = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fragShdr, fragElem.text);
+        gl.compileShader(fragShdr);
+        if (!gl.getShaderParameter(fragShdr, gl.COMPILE_STATUS)) {
+            var msg = "Fragment shader failed to compile.  The error log is:"
+                + "<pre>" + gl.getShaderInfoLog(fragShdr) + "</pre>";
+            alert(msg);
+            return -1;
+        }
+    }
+
+    let program = gl.createProgram();
+    gl.attachShader(program, vertShdr);
+    gl.attachShader(program, fragShdr);
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        var msg = "Shader program failed to link.  The error log is:"
+            + "<pre>" + gl.getProgramInfoLog(program) + "</pre>";
+        alert(msg);
+        return -1;
+    }
+
+    return program;
+}
+
+//webgl-utils.js
+let WebGLUtils = function () {
+
+/**
+ * Creates a webgl context. If creation fails it will
+ * change the contents of the container of the <canvas>
+ * tag to an error message with the correct links for WebGL.
+ * @param {Element} canvas. The canvas element to create a
+ *     context from.
+ * @param {WebGLContextCreationAttirbutes} opt_attribs Any
+ *     creation attributes you want to pass in.
+ * @return {WebGLRenderingContext} The created context.
+ */
+let setupWebGL = function (canvas, opt_attribs) {
+    function showLink(str) {
+        let container = canvas.parentNode;
+        if (container) {
+            container.innerHTML = makeFailHTML(str);
+        }
+    };
+
+    if (!window.WebGLRenderingContext) {
+        showLink(GET_A_WEBGL_BROWSER);
+        return null;
+    }
+
+    let context = create3DContext(canvas, opt_attribs);
+    if (!context) {
+        showLink(OTHER_PROBLEM);
+    }
+    return context;
+};
+
+/**
+ * Creates a webgl context.
+ * @param {!Canvas} canvas The canvas tag to get context
+ *     from. If one is not passed in one will be created.
+ * @return {!WebGLContext} The created context.
+ */
+let create3DContext = function (canvas, opt_attribs) {
+    let names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
+    let context = null;
+    for (let ii = 0; ii < names.length; ++ii) {
+        try {
+            context = canvas.getContext(names[ii], opt_attribs);
+        } catch (e) { }
+        if (context) {
+            break;
+        }
+    }
+    return context;
+}
+
+return {
+    create3DContext: create3DContext,
+    setupWebGL: setupWebGL
+};
+}();
+
+//main.js
+var vertexShaderSource = `#version 300 es
+
+// an attribute is an input (in) to a vertex shader.
+// It will receive data from a buffer
+in vec4 a_position;
+
+// all shaders have a main function
+void main() {
+
+  // gl_Position is a special variable a vertex shader
+  // is responsible for setting
+  gl_Position = a_position;
+}
+`;
+
+var fragmentShaderSource = `#version 300 es
+
+// fragment shaders don't have a default precision so we need
+// to pick one. highp is a good default. It means "high precision"
+precision highp float;
+
+// we need to declare an output for the fragment shader
+out vec4 outColor;
+
+void main() {
+  // Just set the output to a constant redish-purple
+  outColor = vec4(0.4, 0.7, 0.9, 1);
+}
+`;
+
+let gl;
+let program;
+let points = [];
+
+//畫四面體，每個面3個點，push到points裡 
+function tetrahedron(a, b, c, d) {
+    points.push(a, b, c);
+    points.push(a, c, d);
+    points.push(a, d, b);
+    points.push(b, d, c);
+}
+
+//细分四面體
+function divideTetrahedron(a, b, c, d, count) {//計算碎形切割方式
+    if (count == 0) {
+        tetrahedron(a, b, c, d);
+    } else {
+        let ab = mix(a, b, 0.5);
+        let ac = mix(a, c, 0.5);
+        let ad = mix(a, d, 0.5);
+        let bc = mix(b, c, 0.5);
+        let bd = mix(b, d, 0.5);
+        let cd = mix(c, d, 0.5);
+        count--;
+        divideTetrahedron(a, ab, ac, ad, count);
+        divideTetrahedron(ab, b, bc, bd, count);
+        divideTetrahedron(ac, bc, c, cd, count);
+        divideTetrahedron(ad, bd, cd, d, count);
+    }
+}
+
+function multMat4(a, b) {
+    let result = [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0]
+    ];
+    for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4; j++) {
+            for (let k = 0; k < 4; k++) {
+                result[i][j] += a[i][k] * b[k][j]; //計算旋轉時xyz座標
+            }
+        }
+    }
+    return result;
+}
+
+function rotateX(theta) {//旋轉x軸
+    let c = Math.cos(theta);
+    let s = Math.sin(theta);
+    return [
+        [1, 0, 0, 0],
+        [0, c, -s, 0],
+        [0, s, c, 0],
+        [0, 0, 0, 1]
+    ];
+}
+
+function rotateY(theta) {//旋轉y軸
+    let c = Math.cos(theta);
+    let s = Math.sin(theta);
+    return [
+        [c, 0, s, 0],
+        [0, 1, 0, 0],
+        [-s, 0, c, 0],
+        [0, 0, 0, 1]
+    ];
+}
+
+function rotateZ(theta) {//旋轉z軸
+    let c = Math.cos(theta);
+    let s = Math.sin(theta);
+    return [
+        [c, -s, 0, 0],
+        [s, c, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    ];
+}
+
+var num = 9;
+webglLessonsUI.setupSlider("#n",  {value:num, slide: updatenum, max: 9});
+
+//抓碎形數量變換值
+function updatenum(val) {
+    document.getElementById('nVal').innerHTML = val;
+    num = document.getElementById('nVal').innerHTML;
+    init(); 
+}
+
+function init() {
+    /** @type {HTMLCanvasElement} */
+    let canvas = document.getElementById('gl-canvas');
+    gl = WebGLUtils.setupWebGL(canvas);
+    if (!gl) {
+        alert("webgl isn't available.");
+        return;
+    }
+    //設好最一開始四個頂點座標
+    let l = 1.0;
+    let a = [0 * l, 0 * l, Math.sqrt(6) / 4 * l];//(0,0,9)
+    let b = [Math.sqrt(3) / 6 * l, -1 / 2 * l, -Math.sqrt(6) / 12 * l];//(1.5,-0.5,-3)
+    let c = [Math.sqrt(3) / 6 * l, 1 / 2 * l, -Math.sqrt(6) / 12 * l];//(1.5,0.5,-3)
+    let d = [-Math.sqrt(3) / 3 * l, 0 * l, -Math.sqrt(6) / 12 * l];//(-3,0,-3)
+
+    divideTetrahedron(a, b, c, d, num);
+
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0, 0, 0, 0);
+
+    program = initShaders(gl, 'vertex-shader', 'fragment-shader');
+    gl.useProgram(program);
+
+    let buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(points), gl.STATIC_DRAW);
+
+    //取變量vPosition的位置
+    let vPositionLoc = gl.getAttribLocation(program, 'vPosition');
+    gl.vertexAttribPointer(vPositionLoc, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPositionLoc);
+
+    rotateHandle();
+}
+
+function render() {
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLES, 0, points.length);
+}
+
+// 計算xyz軸旋轉值
+function rotateHandle() {
+    let x = document.getElementById('x-range').value;
+    let y = document.getElementById('y-range').value;
+    let z = document.getElementById('z-range').value;
+    x = x / 100 * Math.PI;
+    y = y / 100 * Math.PI;
+    z = z / 100 * Math.PI;
+
+    //取uViewMatrix變量的位置
+    let uViewMatrixLoc = gl.getUniformLocation(program, 'uViewMatrix');
+    let viewMatrix = [
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ];
+    viewMatrix = multMat4(rotateX(x), viewMatrix);
+    viewMatrix = multMat4(rotateY(y), viewMatrix);
+    viewMatrix = multMat4(rotateZ(z), viewMatrix);
+    gl.uniformMatrix4fv(uViewMatrixLoc, false, flatten(viewMatrix));
+    render();
+}
+window.onload = init;
+</script>

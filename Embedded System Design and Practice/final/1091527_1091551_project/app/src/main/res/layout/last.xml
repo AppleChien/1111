@@ -1,0 +1,72 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/water"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context=".LastActivity">
+
+
+    <RelativeLayout
+        android:layout_width="372dp"
+        android:layout_height="372dp"
+        android:background="@drawable/sc"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:translationY="120dp"
+        tools:context=".SecondActivity">
+
+        <TextView
+            android:id="@+id/textViewmoney"
+            android:layout_width="336dp"
+            android:layout_height="319dp"
+            android:translationY="10dp" />
+
+        <com.google.android.gms.maps.MapView
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:map="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".MapsActivity"
+            map:uiZoomControls="true"
+            map:liteMode="true"
+            map:uiRotateGestures="true"
+            map:cameraTilt="30"  />
+        <!--
+        map:mapType="0" Specifies a change to the initial map type
+        map:zOrderOnTop="true"  Control whether the map view's surface is placed on top of its window
+        map:useVieLifecycle="true" When using a MapFragment, this flag specifies whether the lifecycle of the map should be tied to the fragment's view or the fragment itself
+        map:uiCompass="true" Enables or disables the compass
+        map:uiRotateGestures="true" Sets the preference for whether rotate gestures should be enabled or disabled
+        map:uiScrollGestures="true" Sets the preference for whether scroll gestures should be enabled or disabled
+        map:uiTiltGestures="true" Sets the preference for whether tilt gestures should be enabled or disabled
+        map:uiZoomGestures="true" Sets the preference for whether zoom gestures should be enabled or disabled
+        map:uiZoomControls="true" Enables or disables the zoom controls
+        map:liteMode="true" Specifies whether the map should be created in lite mode
+        map:uiMapToolbar="true" Specifies whether the mapToolbar should be enabled
+        map:ambientEnabled="true" Specifies whether ambient-mode styling should be enabled
+        map:cameraMinZoomPreference="0.0" Specifies a preferred lower bound for camera zoom
+        map:cameraMaxZoomPreference="1.0" Specifies a preferred upper bound for camera zoom -->
+
+
+    </RelativeLayout>
+
+
+    <Button
+        android:id="@+id/returnmain"
+        android:layout_width="153dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/sc2"
+        android:translationX="10dp"
+        android:translationY="40dp"
+        android:text="返回" />
+
+</RelativeLayout>

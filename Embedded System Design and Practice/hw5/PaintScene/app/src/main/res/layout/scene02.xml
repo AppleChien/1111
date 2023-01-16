@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_centerInParent="true"
+        android:paddingLeft="32dp"
+        android:paddingTop="35dp">
+
+        <ImageView
+            android:id="@+id/r1c1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r1c1" />
+
+        <ImageView
+            android:id="@+id/r1c2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/r1c1"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r1c2" />
+
+        <ImageView
+            android:id="@+id/r1c3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/r1c2"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r1c3" />
+
+        <ImageView
+            android:id="@+id/r1c4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/r1c3"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r1c4" />
+
+        <ImageView
+            android:id="@+id/r1c5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/r1c4"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r1c5" />
+        <ImageView
+            android:id="@+id/r1c6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/r1c5"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r1c6" />
+
+
+
+
+
+        <ImageView
+            android:id="@+id/r2c1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/r1c1"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r2c1" />
+
+        <ImageView
+            android:id="@+id/r2c2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/r2c1"
+            android:layout_toRightOf="@+id/r2c1"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r2c2" />
+
+        <ImageView
+            android:id="@+id/r2c3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/r1c3"
+            android:layout_toRightOf="@+id/r2c2"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r2c3" />
+
+
+
+
+
+
+        <ImageView
+            android:id="@+id/r3c1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/r2c1"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r3c1" />
+
+        <ImageView
+            android:id="@+id/r3c2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/r3c1"
+            android:layout_toRightOf="@+id/r3c1"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r3c2" />
+
+        <ImageView
+            android:id="@+id/r3c3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/r3c1"
+            android:layout_toRightOf="@+id/r3c2"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r3c3" />
+
+
+
+        <ImageView
+            android:id="@+id/r4c1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/r3c1"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r4c1" />
+
+        <ImageView
+            android:id="@+id/r4c2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/r4c1"
+            android:layout_toRightOf="@+id/r4c1"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r4c2" />
+
+        <ImageView
+            android:id="@+id/r4c3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/r4c1"
+            android:layout_toRightOf="@+id/r4c2"
+            android:contentDescription="@string/paint_square"
+            android:src="@drawable/r4c3" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:text="@string/hide"
+            android:onClick="changeScenes" />
+
+    </RelativeLayout>
+
+</merge>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/water">
+
+
+    <!-- TEXTVIEWS FOR BASE COST LABEL AND COMPUTATION  -->
+
+
+    <RelativeLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="369dp"
+        android:layout_height="194dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:background="#77E0A5EA"
+        android:radius="50dp">
+
+
+        <!-- TEXTVIEWS FOR BASE COST LABEL AND COMPUTATION  -->
+
+        <TextView
+            android:id="@+id/textView9"
+            android:layout_width="wrap_content"
+            android:layout_height="68dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="-2dp"
+            android:layout_marginBottom="90dp"
+            android:paddingLeft="30dp"
+            android:text="BMR："
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textSize="25sp" />
+
+        <TextView
+            android:id="@+id/textView10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/textView9"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="90dp"
+            android:layout_marginTop="15dp"
+            android:paddingLeft="30dp"
+            android:text="0.0"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textSize="25sp" />
+
+        <TextView
+            android:id="@+id/textView11"
+            android:layout_width="wrap_content"
+            android:layout_height="68dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="-2dp"
+            android:layout_marginBottom="20dp"
+            android:paddingLeft="30dp"
+            android:text="TDEE："
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textSize="25sp" />
+
+        <TextView
+            android:id="@+id/textView12"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/textView11"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="100dp"
+            android:layout_marginTop="55dp"
+            android:paddingLeft="30dp"
+            android:text="0.0"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textSize="25sp" />
+
+
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/intro"
+        android:layout_width="130dp"
+        android:layout_height="60dp"
+        android:layout_alignLeft="@id/intro"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="500dp"
+        android:layout_marginTop="130dp"
+        android:background="#D1E8F3"
+        android:onClick="reset"
+        android:text="App介紹"
+        android:textSize="20sp" />
+
+
+    <Button
+        android:id="@+id/info"
+        android:layout_width="130dp"
+        android:layout_height="60dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="500dp"
+        android:layout_marginTop="40dp"
+        android:background="#D1E8F3"
+        android:onClick="reset"
+        android:text="資料輸入"
+        android:textSize="20sp" />
+
+</RelativeLayout>
